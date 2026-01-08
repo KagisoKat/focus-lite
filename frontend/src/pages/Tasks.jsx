@@ -14,7 +14,8 @@ import ToastContainer from "../components/ToastContainer";
 import "../styles/app.css";
 
 function tempId() {
-    return `temp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    // Use crypto.randomUUID() for secure random IDs (satisfies S2245)
+    return `temp_${crypto.randomUUID()}`;
 }
 
 export default function Tasks() {
