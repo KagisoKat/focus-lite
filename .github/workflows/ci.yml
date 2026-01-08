@@ -25,6 +25,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Lint
+        run: npm run lint
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -44,3 +47,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Lint
+        run: npm run lint

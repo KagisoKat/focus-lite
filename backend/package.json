@@ -7,7 +7,8 @@
 	"scripts": {
 		"dev": "nodemon src/index.js",
 		"start": "node src/index.js",
-		"test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand"
+		"test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+		"lint": "eslint ."
 	},
 	"dependencies": {
 		"bcryptjs": "^3.0.3",
