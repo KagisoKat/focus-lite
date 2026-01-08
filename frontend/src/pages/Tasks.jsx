@@ -2,23 +2,31 @@ import { useEffect, useMemo, useState } from "react";
 import { listTasks, createTask, updateTask, deleteTask } from "../api/tasks";
 import { logout } from "../api/auth";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../hooks/useToast";
+import { getTheme, toggleTheme, applyTheme } from "../utils/theme";
 
 import TaskForm from "../components/TaskForm";
 import TaskFilters from "../components/TaskFilters";
 import TaskList from "../components/TaskList";
+import TaskListSkeleton from "../components/TaskListSkeleton";
+import ToastContainer from "../components/ToastContainer";
 
 import "../styles/app.css";
 
+function tempId() {
+    return `temp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
 export default function Tasks() {
     const nav = useNavigate();
+    const toast = useToast();
 
     const [tasks, setTasks] = useState([]);
     const [statusFilter, setStatusFilter] = useState("all");
-    const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+    const [theme, setTheme] = useState(getTheme());
 
     async function load() {
-        setError("");
         setLoading(true);
         try {
             const data = await listTasks(50);
@@ -30,7 +38,7 @@ export default function Tasks() {
                 nav("/login");
                 return;
             }
-            setError(err?.response?.data?.error || "Failed to load tasks");
+            toast.error("Failed to load tasks");
         } finally {
             setLoading(false);
         }
@@ -47,32 +55,68 @@ export default function Tasks() {
     }, [tasks, statusFilter]);
 
     async function onCreate(title) {
-        setError("");
+        const optimisticTask = {
+            id: tempId(),
+            title,
+            status: "pending",
+            created_at: new Date().toISOString(),
+            _optimistic: true
+        };
+
+        // UI first
+        setTasks((prev) => [optimisticTask, ...prev]);
+        toast.info("Adding task...");
+
         try {
             const data = await createTask(title);
-            setTasks((prev) => [data.task, ...prev]);
+
+            // Replace temp task with real one from server
+            setTasks((prev) =>
+                prev.map((t) => (t.id === optimisticTask.id ? data.task : t))
+            );
+
+            toast.success("Task added");
         } catch (err) {
-            setError(err?.response?.data?.error || "Failed to create task");
+            // Rollback
+            setTasks((prev) => prev.filter((t) => t.id !== optimisticTask.id));
+            toast.error(err?.response?.data?.error || "Failed to add task");
         }
     }
 
     async function onStatusChange(id, status) {
-        setError("");
+        const prevTask = tasks.find((t) => t.id === id);
+        if (!prevTask) return;
+
+        // UI first
+        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
+        toast.info("Updating...");
+
         try {
             const data = await updateTask(id, { status });
+            // Confirm with server response
             setTasks((prev) => prev.map((t) => (t.id === id ? data.task : t)));
+            toast.success("Task updated");
         } catch (err) {
-            setError(err?.response?.data?.error || "Failed to update task");
+            // Rollback
+            setTasks((prev) => prev.map((t) => (t.id === id ? prevTask : t)));
+            toast.error(err?.response?.data?.error || "Failed to update task");
         }
     }
 
     async function onDelete(id) {
-        setError("");
+        const prevTasks = tasks;
+
+        // UI first
+        setTasks((prev) => prev.filter((t) => t.id !== id));
+        toast.info("Deleting...");
+
         try {
             await deleteTask(id);
-            setTasks((prev) => prev.filter((t) => t.id !== id));
+            toast.success("Task deleted");
         } catch (err) {
-            setError(err?.response?.data?.error || "Failed to delete task");
+            // Rollback
+            setTasks(prevTasks);
+            toast.error(err?.response?.data?.error || "Failed to delete task");
         }
     }
 
@@ -82,12 +126,24 @@ export default function Tasks() {
     }
 
     return (
-        <div className="container">
+        <div className={`container ${loading ? "loading" : ""}`}>
             <div className="topbar">
                 <h1>Tasks</h1>
-                <button className="btn" onClick={onLogout}>
-                    Logout
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                        className="btn"
+                        onClick={() => {
+                            const next = toggleTheme();
+                            applyTheme(next);
+                            setTheme(next);
+                        }}
+                    >
+                        {theme === "dark" ? "Light mode" : "Dark mode"}
+                    </button>
+                    <button className="btn" onClick={onLogout}>
+                        Logout
+                    </button>
+                </div>
             </div>
 
             <TaskFilters
@@ -99,13 +155,13 @@ export default function Tasks() {
 
             <TaskForm onCreate={onCreate} disabled={loading} />
 
-            {error ? <div className="error">{error}</div> : null}
-
-            {loading ? <div>Loading...</div> : null}
+            {loading ? <TaskListSkeleton count={6} /> : null}
 
             {!loading ? (
                 <TaskList tasks={filtered} onStatusChange={onStatusChange} onDelete={onDelete} />
             ) : null}
+
+            <ToastContainer toasts={toast.toasts} onClose={toast.remove} />
         </div>
     );
 }

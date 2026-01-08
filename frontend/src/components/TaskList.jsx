@@ -8,7 +8,9 @@ export default function TaskList({
             {tasks.map((t) => (
                 <li key={t.id} className="task-card">
                     <div className="task-left">
-                        <div className="task-title">{t.title}</div>
+                        <div className="task-title">
+                            {t.title} {t._optimistic ? <span style={{ fontSize: 12, opacity: 0.6 }}> (saving)</span> : null}
+                        </div>
                         <div className="task-meta">
                             {t.status} • {new Date(t.created_at).toLocaleString()}
                         </div>
@@ -32,7 +34,11 @@ export default function TaskList({
                 </li>
             ))}
 
-            {tasks.length === 0 ? <li className="empty">No tasks yet.</li> : null}
+            {tasks.length === 0 ? (
+                <li className="empty">
+                    You're all caught up. Add your first task above.
+                </li>
+            ) : null}
         </ul>
     );
 }

@@ -1,3 +1,50 @@
+/* --- Theme tokens --- */
+:root {
+	--bg: #ffffff;
+	--text: #0f172a;
+	--muted: rgba(15, 23, 42, 0.7);
+	--border: #e2e2e2;
+	--surface: #ffffff;
+	--surface-2: #f3f4f6;
+
+	--primary: #111827;
+	--primary-text: #ffffff;
+
+	--danger-bg: #fee2e2;
+	--danger-text: #7f1d1d;
+
+	--info-bg: #e0f2fe;
+	--info-text: #075985;
+
+	--shadow: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="dark"] {
+	--bg: #0b1220;
+	--text: #e5e7eb;
+	--muted: rgba(229, 231, 235, 0.7);
+	--border: rgba(255, 255, 255, 0.12);
+	--surface: #0f172a;
+	--surface-2: rgba(255, 255, 255, 0.06);
+
+	--primary: #e5e7eb;
+	--primary-text: #0b1220;
+
+	--danger-bg: rgba(248, 113, 113, 0.18);
+	--danger-text: #fecaca;
+
+	--info-bg: rgba(56, 189, 248, 0.18);
+	--info-text: #bae6fd;
+
+	--shadow: rgba(0, 0, 0, 0.35);
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	color: var(--text);
+}
+
 :root {
 	font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
@@ -18,10 +65,11 @@
 
 .btn {
 	padding: 10px 12px;
-	border: 1px solid #d0d0d0;
-	background: rgb(207, 173, 173);
+	border: 1px solid var(--border);
+	background: var(--surface);
 	border-radius: 10px;
 	cursor: pointer;
+	color: var(--text);
 }
 
 .btn:disabled {
@@ -30,21 +78,24 @@
 }
 
 .btn.danger {
-	border-color: #1c0404;
+	border-color: var(--danger-bg);
 }
 
 .input {
 	width: 100%;
 	padding: 10px 12px;
-	border: 1px solid #d0d0d0;
+	border: 1px solid var(--border);
 	border-radius: 10px;
+	background: var(--surface);
+	color: var(--text);
 }
 
 .select {
 	padding: 10px 12px;
-	border: 1px solid #d0d0d0;
+	border: 1px solid var(--border);
 	border-radius: 10px;
-	background: white;
+	background: var(--surface);
+	color: var(--text);
 }
 
 .task-form {
@@ -74,7 +125,8 @@
 	display: flex;
 	justify-content: space-between;
 	gap: 12px;
-	border: 1px solid #8f927e;
+	border: 1px solid var(--border);
+	background: var(--surface);
 	border-radius: 12px;
 	padding: 12px;
 	margin-bottom: 10px;
@@ -104,4 +156,170 @@
 .empty {
 	opacity: 0.7;
 	padding: 10px 0;
+}
+
+/* --- Typography scale --- */
+h1 {
+	font-size: 1.6rem;
+	margin: 0;
+}
+
+h2 {
+	font-size: 1.25rem;
+	margin: 0;
+}
+
+/* --- Buttons --- */
+.btn.primary {
+	background: var(--primary);
+	color: var(--primary-text);
+	border-color: var(--primary);
+}
+
+.btn.primary:hover {
+	opacity: 0.9;
+}
+
+.btn.ghost {
+	background: transparent;
+}
+
+/* --- Inputs focus --- */
+.input:focus,
+.select:focus {
+	outline: none;
+	border-color: var(--primary);
+}
+
+/* --- Alerts --- */
+.alert {
+	padding: 10px 12px;
+	border-radius: 10px;
+	margin-bottom: 12px;
+}
+
+.alert.error {
+	background: var(--danger-bg);
+	color: var(--danger-text);
+}
+
+.alert.info {
+	background: var(--info-bg);
+	color: var(--info-text);
+}
+
+/* --- Loading --- */
+.loading {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+/* --- Toasts --- */
+.toast-container {
+	position: fixed;
+	top: 20px;
+	right: 20px;
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.toast {
+	min-width: 220px;
+	max-width: 320px;
+	padding: 10px 12px;
+	border-radius: 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 14px;
+	box-shadow: 0 6px 18px var(--shadow);
+	animation: slide-in 0.2s ease-out;
+}
+
+.toast.success {
+	background: #dcfce7;
+	color: #14532d;
+}
+
+.toast.error {
+	background: var(--danger-bg);
+	color: var(--danger-text);
+}
+
+.toast.info {
+	background: var(--info-bg);
+	color: var(--info-text);
+}
+
+.toast button {
+	background: transparent;
+	border: none;
+	font-size: 16px;
+	cursor: pointer;
+	color: inherit;
+}
+
+@keyframes slide-in {
+	from {
+		opacity: 0;
+		transform: translateX(10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+/* --- Skeletons --- */
+.skeleton {
+	position: relative;
+	overflow: hidden;
+	background: var(--surface-2);
+	border-radius: 12px;
+}
+
+.skeleton::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -40%;
+	width: 40%;
+	height: 100%;
+	background: rgba(255, 255, 255, 0.7);
+	transform: skewX(-15deg);
+	animation: shimmer 1.1s infinite;
+}
+
+@keyframes shimmer {
+	0% {
+		left: -40%;
+	}
+	100% {
+		left: 120%;
+	}
+}
+
+.skeleton-row {
+	height: 14px;
+	border-radius: 8px;
+	background: rgba(0, 0, 0, 0.08);
+}
+
+html[data-theme="dark"] .skeleton-row {
+	background: rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-row.small {
+	height: 10px;
+	width: 40%;
+}
+.skeleton-row.medium {
+	height: 12px;
+	width: 65%;
+}
+.skeleton-row.large {
+	height: 14px;
+	width: 85%;
 }
