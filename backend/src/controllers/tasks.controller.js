@@ -2,19 +2,27 @@ import { pool } from "../config/db.js";
 import { httpError } from "../middleware/errorHandler.js";
 import { isUuid, validateTitle, validateStatus } from "../utils/validate.js";
 
+function parseLimit(value) {
+    const n = Number.parseInt(String(value ?? ""), 10);
+    if (Number.isNaN(n)) return 20;
+    return Math.min(Math.max(n, 1), 100);
+}
+
 export async function listTasks(req, res, next) {
     try {
         const userId = req.user.id;
+        const limit = parseLimit(req.query.limit);
 
         const result = await pool.query(
             `SELECT id, title, status, created_at
        FROM tasks
        WHERE user_id = $1
-       ORDER BY created_at DESC`,
-            [userId]
+       ORDER BY created_at DESC
+       LIMIT $2`,
+            [userId, limit]
         );
 
-        res.json({ ok: true, tasks: result.rows });
+        res.json({ ok: true, tasks: result.rows, page: { limit } });
     } catch (err) {
         next(err);
     }
