@@ -1,26 +1,30 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login } from "../api/auth";
+import { register, login } from "../api/auth";
 
-export default function Login() {
+export default function Register() {
     const nav = useNavigate();
-    const [email, setEmail] = useState("test@example.com");
-    const [password, setPassword] = useState("Password123!");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [details, setDetails] = useState(null);
     const [loading, setLoading] = useState(false);
 
     async function onSubmit(e) {
         e.preventDefault();
         setError("");
+        setDetails(null);
         setLoading(true);
 
         try {
-            const data = await login(email, password);
+            await register(email, password);
+            const data = await login(email, password); // auto-login after register
             localStorage.setItem("token", data.token);
             nav("/tasks");
         } catch (err) {
-            const msg = err?.response?.data?.error || "Login failed";
-            setError(msg);
+            const data = err?.response?.data;
+            setError(data?.error || "Registration failed");
+            setDetails(data?.details || null);
         } finally {
             setLoading(false);
         }
@@ -29,7 +33,7 @@ export default function Login() {
     return (
         <div style={{ maxWidth: 420, margin: "60px auto", fontFamily: "system-ui" }}>
             <h1>Focus Lite</h1>
-            <p>Login</p>
+            <p>Create account</p>
 
             <form onSubmit={onSubmit}>
                 <label>Email</label>
@@ -51,16 +55,21 @@ export default function Login() {
 
                 {error ? <div style={{ color: "crimson", marginBottom: 12 }}>{error}</div> : null}
 
+                {details ? (
+                    <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 12 }}>
+                        {details.email ? <div>Email: {details.email}</div> : null}
+                        {details.password ? <div>Password: {details.password}</div> : null}
+                    </div>
+                ) : null}
+
                 <button disabled={loading} style={{ width: "100%", padding: 10 }}>
-                    {loading ? "Logging in..." : "Login"}
+                    {loading ? "Creating..." : "Create account"}
                 </button>
             </form>
 
-            <p style={{ marginTop: 16, fontSize: 12, opacity: 0.7 }}>
-                Note: Use a registered account. If test@example.com doesn’t exist yet, register via curl.
-            </p>
             <p style={{ marginTop: 12, fontSize: 14 }}>
-                No account yet? <Link to="/register">Create one</Link>
-            </p>        </div>
+                Already have an account? <Link to="/login">Login</Link>
+            </p>
+        </div>
     );
 }
