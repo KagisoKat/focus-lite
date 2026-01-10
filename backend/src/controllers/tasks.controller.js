@@ -13,16 +13,39 @@ export async function listTasks(req, res, next) {
         const userId = req.user.id;
         const limit = parseLimit(req.query.limit);
 
-        const result = await pool.query(
+        const cursorAt = req.query.cursor_at; // ISO timestamp string
+        const cursorId = req.query.cursor_id; // UUID string
+
+        let sql =
             `SELECT id, title, status, created_at
        FROM tasks
-       WHERE user_id = $1
-       ORDER BY created_at DESC
-       LIMIT $2`,
-            [userId, limit]
-        );
+       WHERE user_id = $1`;
 
-        res.json({ ok: true, tasks: result.rows, page: { limit } });
+        const params = [userId];
+        let p = 2;
+
+        if (cursorAt && cursorId) {
+            sql += ` AND (created_at, id) < ($${p++}, $${p++})`;
+            params.push(cursorAt, cursorId);
+        }
+
+        sql += ` ORDER BY created_at DESC, id DESC LIMIT $${p++}`;
+        params.push(limit);
+
+        const result = await pool.query(sql, params);
+
+        const rows = result.rows;
+        const last = rows[rows.length - 1];
+
+        res.json({
+            ok: true,
+            tasks: rows,
+            page: {
+                limit,
+                next_cursor_at: last ? last.created_at : null,
+                next_cursor_id: last ? last.id : null
+            }
+        });
     } catch (err) {
         next(err);
     }
