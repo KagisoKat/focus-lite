@@ -101,3 +101,17 @@ db-reset:
 	@sleep 2
 	docker compose down -v
 	docker compose up -d --build
+
+.PHONY: prod-up prod-down prod-logs prod-ps
+
+prod-up:
+	docker compose --env-file .env.prod -f docker-compose.prod.yml up -d --build
+
+prod-down:
+	docker compose --env-file .env.prod -f docker-compose.prod.yml down
+
+prod-logs:
+	docker compose --env-file .env.prod -f docker-compose.prod.yml logs -f --tail=100
+
+prod-ps:
+	docker compose --env-file .env.prod -f docker-compose.prod.yml ps
