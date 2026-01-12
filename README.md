@@ -56,32 +56,179 @@ This project is intentionally opinionated and development-focused: everything ru
 
 ---
 
-## Architecture (Dev + Prod)
+## 🚀 Quick Start
+
+### Prerequisites
+
+- [Vagrant](https://www.vagrantup.com/) (2.2+)
+- [VirtualBox](https://www.virtualbox.org/) (6.1+)
+- 4GB RAM available for VM
+- 10GB disk space
+
+### Setup (First Time)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/KagisoKat/focus-lite.git
+cd focus-lite
+
+# 2. Start Vagrant VM (this will take 5-10 minutes first time)
+vagrant up
+
+# 3. SSH into the VM
+vagrant ssh
+
+# 4. Inside VM: Start Docker services
+cd /vagrant
+docker-compose up -d
+
+# 5. Run database migrations
+docker-compose exec backend npm run migrate
+
+# 6. Optional: Seed test data
+docker-compose exec -T db psql -U focus_user -d focus < backend/src/db/seeds/001_seed.sql
+```
+
+### Access the Application
+
+- **Frontend (Dev)**: http://localhost:5173
+- **Backend API**: http://localhost:5000
+- **Production Build**: http://localhost:8080 (after running `make prod`)
+- **Database**: localhost:5433 (PostgreSQL)
+
+### Development Workflow
+
+```bash
+# Start services
+vagrant ssh
+cd /vagrant
+docker-compose up
+
+# Run tests
+docker-compose exec backend npm test
+docker-compose exec backend npm run test:cov
+
+# Run linting
+docker-compose exec backend npm run lint
+docker-compose exec frontend npm run lint
+
+# View logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+
+# Stop services
+docker-compose down
+
+# Rebuild after dependency changes
+docker-compose build --no-cache backend
+docker-compose build --no-cache frontend
+```
+
+### Production Build
+
+```bash
+# Build and start production containers
+make prod
+
+# Or manually:
+docker-compose -f docker-compose.prod.yml up --build
+```
+
+---
+
+## 🧪 Testing
+
+### Backend Tests
+
+```bash
+# Run all tests
+docker-compose exec backend npm test
+
+# Run with coverage
+docker-compose exec backend npm run test:cov
+
+# Run specific test file
+docker-compose exec backend npm test auth.test.js
+```
+
+Test suites include:
+
+- ✅ Authentication (register, login)
+- ✅ Task CRUD operations
+- ✅ Negative cases (error handling)
+- ✅ Health endpoint
+
+### Frontend Tests
+
+```bash
+# Run frontend tests
+docker-compose exec frontend npm test
+```
+
+---
+
+## 📊 Code Quality
+
+### Linting
+
+```bash
+# Backend linting
+docker-compose exec backend npm run lint
+
+# Frontend linting
+docker-compose exec frontend npm run lint
+```
+
+### SonarCloud
+
+Code quality analysis runs automatically on every PR via GitHub Actions.
+
+- **Quality Gate**: Must pass before merging
+- **Coverage**: Tracked via lcov reports
+- **Configuration**: [sonar-project.properties](sonar-project.properties)
+
+---
+
+## 📚 Documentation
+
+- **[Architecture Details](docs/architecture-diagram.md)** - System design and data flows
+- **[Lessons Learned](docs/LESSONS_LEARNED.md)** - Development insights and best practices
+- **[API Reference](#-api-reference)** - Endpoint documentation (below)
+
+---
+
+## 🏗️ Architecture
+
+Focus-Lite uses a containerized architecture with separate services for frontend, backend, and database.
 
 ```mermaid
-flowchart LR
-  subgraph Host[Windows Host]
-    B[Browser]
-    V[Vagrant CLI]
-  end
+graph TB
+    subgraph "Host Machine (Windows)"
+        Browser[Web Browser]
+    end
 
-  subgraph VM[Ubuntu VM (Vagrant)]
-    DC[Docker Compose]
-    FE_DEV[Vite Dev Server :5173]
-    API[Backend API :5000]
-    DB[(Postgres :5432)]
-    NGINX[Nginx :8080 (prod)]
-  end
+    subgraph "Vagrant VM (Ubuntu)"
+        subgraph "Docker Compose"
+            Frontend[Frontend Container<br/>Vite Dev :5173]
+            Backend[Backend Container<br/>Express API :5000]
+            Database[(PostgreSQL :5432)]
+            Nginx[Nginx :8080<br/>Production]
+        end
+    end
 
-  B -->|Dev| FE_DEV
-  FE_DEV -->|/api| API
-  API --> DB
+    Browser -->|Dev| Frontend
+    Browser -->|Prod| Nginx
+    Frontend -->|API Calls| Backend
+    Nginx -->|Proxy| Backend
+    Backend -->|SQL| Database
 
-  B -->|Prod| NGINX
-  NGINX -->|/api/*| API
-  NGINX -->|SPA static| FE_STATIC[React build]
-  API --> DB
+    style Frontend fill:#61dafb
+    style Backend fill:#68a063
+    style Database fill:#336791
+    style Nginx fill:#009639
 ```
+
+📖 **[View detailed architecture documentation](docs/architecture-diagram.md)**
 
 ---
 
@@ -190,3 +337,57 @@ All task endpoints require: `Authorization: Bearer <token>`
 - **Validation**: Server-side validation on all inputs with explicit error messages
 
 ---
+
+## 🤝 Contributing
+
+This is a portfolio/learning project, but suggestions are welcome!
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+All PRs must:
+
+- Pass all tests
+- Pass linting checks
+- Pass SonarCloud quality gate
+- Include relevant test coverage
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 👤 Author
+
+**Kagiso Manamela**
+
+- GitHub: [@KagisoKat](https://github.com/KagisoKat)
+- LinkedIn: [Connect with me](https://linkedin.com/in/your-profile)
+
+---
+
+## 🙏 Acknowledgments
+
+- Inspired by modern full-stack best practices
+- Built with guidance from Node.js and React communities
+- DevOps patterns from industry-standard workflows
+
+---
+
+## 📖 Additional Resources
+
+- [Lessons Learned](docs/LESSONS_LEARNED.md) - Development journey insights
+- [Architecture Diagram](docs/architecture-diagram.md) - Technical deep dive
+- [CHANGELOG](CHANGELOG.md) - Version history
+
+---
+
+**Version**: 1.0.0  
+**Status**: ✅ Production Ready  
+**Last Updated**: January 2026
