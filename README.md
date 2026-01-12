@@ -47,6 +47,55 @@ This project is intentionally opinionated and development-focused: everything ru
 
 ---
 
+## Screenshots
+
+![Register](docs/screenshots/01-register-dark.png)
+![Tasks grouped](docs/screenshots/02-tasks-grouped.png)
+![Inline edit](docs/screenshots/03-inline-edit.png)
+![Toasts](docs/screenshots/04-toast.png)
+
+---
+
+## Architecture (Dev + Prod)
+
+```mermaid
+flowchart LR
+  subgraph Host[Windows Host]
+    B[Browser]
+    V[Vagrant CLI]
+  end
+
+  subgraph VM[Ubuntu VM (Vagrant)]
+    DC[Docker Compose]
+    FE_DEV[Vite Dev Server :5173]
+    API[Backend API :5000]
+    DB[(Postgres :5432)]
+    NGINX[Nginx :8080 (prod)]
+  end
+
+  B -->|Dev| FE_DEV
+  FE_DEV -->|/api| API
+  API --> DB
+
+  B -->|Prod| NGINX
+  NGINX -->|/api/*| API
+  NGINX -->|SPA static| FE_STATIC[React build]
+  API --> DB
+```
+
+---
+
+## 90-second demo script
+
+1. "This is Focus-Lite: a task manager built with a PERN stack and DevOps-quality workflows."
+2. "Auth is JWT-based: register/login, then protected routes."
+3. "Tasks support create, inline edit, status updates, delete — all with optimistic UI + rollback."
+4. "The UI has dark mode, skeleton loaders, and toast notifications for feedback."
+5. "Quality gates: Jest + Supertest tests, ESLint, coverage publishing, and SonarCloud analysis on every PR."
+6. "Production mode uses Nginx as the front door serving the built SPA and proxying /api to the backend, with automated DB migrations."
+
+---
+
 ## 📁 Project Structure
 
 ```text
