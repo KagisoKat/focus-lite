@@ -94,4 +94,25 @@ describe("negative cases", () => {
 
         expect(d.status).toBe(404);
     });
+
+    it("401: rejects malformed JWT token", async () => {
+        const app = createApp();
+        const r = await request(app)
+            .get("/api/tasks")
+            .set("Authorization", "Bearer invalid.malformed.token");
+
+        expect(r.status).toBe(401);
+    });
+
+    it("401: rejects expired/invalid JWT", async () => {
+        const app = createApp();
+        // Use a token that's structurally valid but not signed correctly
+        const fakeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjMiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6MTYwOTQ1OTIwMH0.invalid_signature";
+
+        const r = await request(app)
+            .get("/api/tasks")
+            .set("Authorization", `Bearer ${fakeToken}`);
+
+        expect(r.status).toBe(401);
+    });
 });

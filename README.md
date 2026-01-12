@@ -131,3 +131,62 @@ focus-lite/
 │     ├─ pages/
 │     └─ styles/
 ```
+
+---
+
+## 📖 API Reference
+
+### Authentication
+
+**POST /api/auth/register**
+
+- Body: `{ email, password }`
+- Success: `201` with `{ ok: true, message }`
+- Errors: `409` (duplicate email), `422` (validation failed)
+
+**POST /api/auth/login**
+
+- Body: `{ email, password }`
+- Success: `200` with `{ ok: true, token }`
+- Errors: `401` (invalid credentials), `422` (validation failed)
+- Rate limit: 50 requests per 15 minutes per IP
+
+### Tasks (Protected)
+
+All task endpoints require: `Authorization: Bearer <token>`
+
+**GET /api/tasks**
+
+- Success: `200` with `{ ok: true, tasks: [...] }`
+- Errors: `401` (missing/invalid token)
+
+**POST /api/tasks**
+
+- Body: `{ title }`
+- Success: `201` with `{ ok: true, task: {...} }`
+- Errors: `401`, `422` (empty title)
+
+**PATCH /api/tasks/:id**
+
+- Body: `{ title?, status? }` (one or both)
+- Status values: `pending`, `in-progress`, `completed`
+- Success: `200` with `{ ok: true, task: {...} }`
+- Errors: `401`, `404` (task not found), `422` (invalid status)
+
+**DELETE /api/tasks/:id**
+
+- Success: `200` with `{ ok: true, message }`
+- Errors: `401`, `404` (task not found)
+
+---
+
+## 🔒 Security
+
+- **JWT Expiry**: Tokens expire after 7 days
+- **Password Hashing**: bcrypt with cost factor 12
+- **Rate Limiting**: Auth endpoints limited to 50 requests per 15 minutes per IP
+- **CORS**: Configured for `http://localhost:5173` (dev) and production origin
+- **Helmet**: Security headers enabled in production
+- **Validation**: Server-side validation on all inputs with explicit error messages
+
+---
