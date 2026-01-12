@@ -115,3 +115,31 @@ prod-logs:
 
 prod-ps:
 	docker compose --env-file .env.prod -f docker-compose.prod.yml ps
+
+.PHONY: prod-smoke
+
+prod-smoke:
+	@echo "== containers =="
+	@docker compose --env-file .env.prod -f docker-compose.prod.yml ps
+	@echo
+	@echo "== health =="
+	@curl -fsS http://localhost:8080/health && echo
+	@curl -fsS http://localhost:8080/api/health && echo
+
+.PHONY: db-backup db-restore
+
+db-backup:
+	@mkdir -p backups
+	@echo "Creating backup in ./backups ..."
+	docker exec -t focus-db pg_dump -U focus -d focus -F c -f /tmp/focus.backup
+	docker cp focus-db:/tmp/focus.backup backups/focus_`date +%Y%m%d_%H%M%S`.backup
+	@echo "Done."
+
+# Usage:
+# make db-restore FILE=backups/focus_YYYYMMDD_HHMMSS.backup
+db-restore:
+	@if [ -z "$(FILE)" ]; then echo "Missing FILE=. Example: make db-restore FILE=backups/your.backup"; exit 1; fi
+	@echo "Restoring from $(FILE) ..."
+	docker cp $(FILE) focus-db:/tmp/restore.backup
+	docker exec -t focus-db pg_restore -U focus -d focus --clean --if-exists /tmp/restore.backup
+	@echo "Done."

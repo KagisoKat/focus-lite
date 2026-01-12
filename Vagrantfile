@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 5173, host: 5173, auto_correct: true # Vite
   config.vm.network "forwarded_port", guest: 5000, host: 5000, auto_correct: true # API
   config.vm.network "forwarded_port", guest: 5432, host: 5433, auto_correct: true # Postgres (host uses 5433)
+  config.vm.network "forwarded_port", guest: 8080, host: 8081, host_ip: "127.0.0.1" # Prod nginx
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = 4096

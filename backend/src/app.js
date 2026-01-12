@@ -10,6 +10,9 @@ import { authLimiter } from "./middleware/rateLimit.js";
 export function createApp() {
     const app = express();
 
+    // Trust proxy for rate limiting behind nginx
+    app.set('trust proxy', 1);
+
     app.use(helmet());
 
     const isProd = process.env.NODE_ENV === "production";
